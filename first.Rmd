@@ -1,0 +1,37 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(conflicted)
+
+df <- readxl::read_xlsx("Data_source.xlsx")
+df
+```
+
+n this part, you make use of the job survey data from the book: Quantitative data analysis with SPSS.
+(the spss file jss13_ht22.sav or excel file Data_source) .
+ethnicgp = ethnic group, 1 = White, 2 = Asian, 3 = West Indian, 4 = African, 5 = other
+gender (male =1, female =2),
+income = gross annual income before tax in 1000£
+age in years
+years = number of years working at this firm
+commit = organisational commitment (scale 1 ~ 5)
+satis = job satisfaction
+autonom = job autonomy
+routine = job routine
+attend = attendance at meeting (yes = 1, no = 2)
+skill = rated skill (unskilled, semi-skilled, fairly skilled, highly skilled, 1 ~ 4)
+prody = rated productivity (very poor, poor, average, good, very good, 1 ~ 5)
+qual = rated quality (very poor, poor, average, good, very good, 1 ~ 5)
+absence = days of being absent in last 12 months
+
+```{r}
+# using forcats
+
+df %<>% df
+```
+
