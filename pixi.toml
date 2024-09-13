@@ -10,4 +10,6 @@ version = "0.1.0"
 [dependencies]
 r-tidyverse = ">=2.0.0,<3"
 r-conflicted = ">=1.2.0,<2"
-rstudio-desktop = ">=2024.4.2,<2025"
+rstudio-desktop = "*"
+r-pak = ">=0.8.0,<0.9"
+r-janitor = ">=2.2.0,<3"

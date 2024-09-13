@@ -3,17 +3,19 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-
 ```{r}
 library(tidyverse)
 library(conflicted)
+library(magrittr)
+```
 
+
+# Part one
+```{r}
 df <- readxl::read_xlsx("Data_source.xlsx")
 df
 ```
 
-n this part, you make use of the job survey data from the book: Quantitative data analysis with SPSS.
-(the spss file jss13_ht22.sav or excel file Data_source) .
 ethnicgp = ethnic group, 1 = White, 2 = Asian, 3 = West Indian, 4 = African, 5 = other
 gender (male =1, female =2),
 income = gross annual income before tax in 1000£
@@ -30,8 +32,106 @@ qual = rated quality (very poor, poor, average, good, very good, 1 ~ 5)
 absence = days of being absent in last 12 months
 
 ```{r}
-# using forcats
+dff <- df %>%  
+  mutate(
+    ethnicgp = as_factor(ethnicgp) %>% fct_recode("White" = "1", "Asian" = "2", "West Indian" = "3", "African" = "4", "Other" = "5"),
+    gender = as_factor(gender) %>% fct_recode("Male" = "1", "Female" = "2"),
+    attend = as_factor(attend) %>% fct_recode("Yes" = "1", "No" = "2"),
+    skill = as_factor(skill) %>% fct_recode("Unskilled" = "1", "Semi-skilled" = "2", "Fairly skilled" = "3", "Highly skilled" = "4"),
+    prody = as_factor(prody) %>% fct_recode("Very poor" = "1", "Poor" = "2", "Average" = "3", "Good" = "4", "Very good" = "5"),
+    qual = as_factor(qual) %>% fct_recode("Very poor" = "1", "Poor" = "2", "Average" = "3", "Good" = "4", "Very good" = "5"),
+    income = income*1000
+  )
+dff
+```
 
-df %<>% df
+## 1.1
+### a)
+Make plot of gender in Bar chart and ethnic group in pie diagram
+
+```{r}
+library(janitor)
+dff %>% tabyl(gender) %>% 
+  adorn_pct_formatting(affix_sign = F)
+dff %>% ggplot(aes(x = gender, fill = gender)) +
+  geom_bar()
+```
+
+```{r}
+dff %>% 
+  tabyl(ethnicgp) %>% 
+  adorn_pct_formatting(affix_sign = F) -> etnias
+etnias
+etnias %>% as.data.frame() %>%
+  ggplot(aes(x = "", y = n, fill = ethnicgp)) + 
+  geom_bar(stat = "identity") +
+  coord_polar("y", start = -0) + 
+  theme_void()
+```
+
+
+### b)
+Make a five number summary (max, min, median, the first and third quartiles) of Age then a box-plot
+
+```{r}
+summary(dff$age)
+dff %>% ggplot(aes(y= age, x = 0)) +
+  geom_boxplot() +
+  xlim(-1, 1) + 
+  theme(axis.text.x = element_blank(), axis.ticks.x= element_blank(), axis.x = element_blank()) 
+
+dff %>% ggplot(aes(x = age)) +
+  geom_histogram(bins = 10, alpha = 0.5) +
+  geom_boxplot(aes(y = 0), width = 1) +
+  ylab("frequency")
+
+dff %>% ggplot(aes(x = age)) +
+  geom_density(adjust =0.5,  alpha = 0.5) +
+  geom_boxplot(aes(y = 0), width = 0.005) + 
+  geom_jitter(aes(y = 0), height = 0.002, size = 0.4) +
+  ylab("density")
+```
+
+
+### c)
+Find the mean and standard deviation of income, and as well as histogram of it.
+```{r}
+cat("mean income = ", mean(dff$income, na.rm = T), "standard deviation = ", sd(dff$income, na.rm = T), "\n")
+dff %>% ggplot(aes(income)) +
+  geom_histogram(color = "#000000", fill = "#0099F8") +
+  xlab("Income (£)")
+dff %>% ggplot(aes(income)) +
+  # https://en.wikipedia.org/wiki/Sturges%27s_rule
+  geom_histogram(breaks = hist(dff$income, plot = F, breaks = "Sturges")$breaks, color = "#000000", fill = "#0099F8") +
+  xlab("Income (£)")
+```
+
+## 1.2
+Consider the variables income and absence.
+### a)
+Make scatter plot to visualize the relationship between them
+```{r}
+dffr <- dff %>% rename(`Days absent last 12 months` = absence, `Gross anual income (£)` = income)
+
+dffr %>% ggplot(aes(y = `Days absent last 12 months`, x= `Gross anual income (£)`)) + 
+  geom_point()
+```
+### b)
+Find the simple regression model where income is dependent variable and rated absence is independent
+variable. What is your determination coefficient?
+```{r}
+# TODO ask if they mean linear regression
+dffr %>% lm(`Days absent last 12 months` ~ `Gross anual income (£)`, data = .) %>% summary
+# dffr %>% loess(`Days absent last 12 months` ~ `Gross anual income (£)`, data = .) %>% summary
+dffr %>% ggplot(aes(y = `Days absent last 12 months`, x= `Gross anual income (£)`)) + 
+  geom_point() +
+  geom_smooth(method = "lm")
+dffr %>% ggplot(aes(y = `Days absent last 12 months`, x= `Gross anual income (£)`)) + 
+  geom_point() +
+  geom_smooth()
+```
+## 1.3
+```{r}
+
 ```
 
