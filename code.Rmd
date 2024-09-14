@@ -37,11 +37,25 @@ dff <- df %>%
     ethnicgp = as_factor(ethnicgp) %>% fct_recode("White" = "1", "Asian" = "2", "West Indian" = "3", "African" = "4", "Other" = "5"),
     gender = as_factor(gender) %>% fct_recode("Male" = "1", "Female" = "2"),
     attend = as_factor(attend) %>% fct_recode("Yes" = "1", "No" = "2"),
-    skill = as_factor(skill) %>% fct_recode("Unskilled" = "1", "Semi-skilled" = "2", "Fairly skilled" = "3", "Highly skilled" = "4"),
-    prody = as_factor(prody) %>% fct_recode("Very poor" = "1", "Poor" = "2", "Average" = "3", "Good" = "4", "Very good" = "5"),
-    qual = as_factor(qual) %>% fct_recode("Very poor" = "1", "Poor" = "2", "Average" = "3", "Good" = "4", "Very good" = "5"),
-    income = income*1000
+    skill = as.ordered(skill) %>% fct_recode("Unskilled" = "1", "Semi-skilled" = "2", "Fairly skilled" = "3", "Highly skilled" = "4"),
+    prody = as.ordered(prody) %>% fct_recode("Very poor" = "1", "Poor" = "2", "Average" = "3", "Good" = "4", "Very good" = "5"),
+    qual = as.ordered(qual) %>% fct_recode("Very poor" = "1", "Poor" = "2", "Average" = "3", "Good" = "4", "Very good" = "5"),
+    commit = as.ordered(commit), #  TODO ask if the ordinal variables (likert scale i think) should be treated as numeric or as factor or as ordinal (or some other thing)
+    # satis = satis %>% as.ordered(), # without the complete context impossible to tell, deciding to treat them as numeric bcs it might be an internal calculation. Unusual for satisfaction, but it fits with autonom and routine, which follow a similar scheme (and scale)
+    
+    
   )
+dff$ethnicgp |> attr("label") <- "number of years working at this firm"
+dff$commit |> attr("label") <- "organisational commitment (1 to 5)"
+dff$satis |> attr("label") <- "job satisfaction"
+dff$autonom |> attr("label") <- "job autonomy"
+dff$routine |> attr("label") <- "job routine"
+dff$attend |> attr("label") <- "attendance at meeting"
+dff$prody |> attr("label") <- "rated productivity"
+dff$qual |> attr("label") <- "rated quality"
+dff$absence |> attr("label") <- "days of being absent in last 12 months"
+dff$years |> attr("label") <- "number of years working at this firm"
+dff$income |> attr("label") <- "Gross anual income/1000£"
 dff
 ```
 
@@ -111,9 +125,9 @@ Consider the variables income and absence.
 ### a)
 Make scatter plot to visualize the relationship between them
 ```{r}
-dffr <- dff %>% rename(`Days absent last 12 months` = absence, `Gross anual income (£)` = income)
+dffr <- dff %>% rename(`Days absent last 12 months` = absence, `Gross anual income/1000£` = income)
 
-dffr %>% ggplot(aes(y = `Days absent last 12 months`, x= `Gross anual income (£)`)) + 
+dffr %>% ggplot(aes(y = `Days absent last 12 months`, x= `Gross anual income/1000£`)) + 
   geom_point()
 ```
 ### b)
@@ -121,17 +135,36 @@ Find the simple regression model where income is dependent variable and rated ab
 variable. What is your determination coefficient?
 ```{r}
 # TODO ask if they mean linear regression
-dffr %>% lm(`Days absent last 12 months` ~ `Gross anual income (£)`, data = .) %>% summary
-# dffr %>% loess(`Days absent last 12 months` ~ `Gross anual income (£)`, data = .) %>% summary
-dffr %>% ggplot(aes(y = `Days absent last 12 months`, x= `Gross anual income (£)`)) + 
+dffr %>% lm(`Days absent last 12 months` ~ `Gross anual income/1000£`, data = .) %>% summary
+# dffr %>% loess(`Days absent last 12 months` ~ `Gross anual income/1000£`, data = .) %>% summary
+dffr %>% ggplot(aes(y = `Days absent last 12 months`, x= `Gross anual income/1000£`)) + 
   geom_point() +
   geom_smooth(method = "lm")
-dffr %>% ggplot(aes(y = `Days absent last 12 months`, x= `Gross anual income (£)`)) + 
+dffr %>% ggplot(aes(y = `Days absent last 12 months`, x= `Gross anual income/1000£`)) + 
   geom_point() +
   geom_smooth()
 ```
 ## 1.3
+Study the multiple regression model with satis as dependent variable and commit, autonom, income,
+skill, rated quality, age, years as independent variables
 ```{r}
+dff %>% lm(satis ~ commit + autonom + income + skill + qual + age + years, data = .) %>% summary -> lm_result
+lm_result
+```
 
+### a)
+Which variables among them do NOT have any significant impact on satis ?
+```{r}
+# TODO verificar com botas
+lm_result$coefficients %>% as.data.frame %>% arrange(Estimate %>% abs)
+```
+
+
+### b) 
+Find a simpler multiple regression model with satis as dependent variable by deleting all those
+non-impact variables.
+```{r}
+# TODO change this if above changes
+dff %>% lm(satis ~ commit + autonom + income + skill + qual, data = .) %>% summary
 ```
 
